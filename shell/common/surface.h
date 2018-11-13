@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,7 +8,8 @@
 #include <memory>
 
 #include "flutter/flow/compositor_context.h"
-#include "lib/fxl/macros.h"
+#include "flutter/flow/embedded_views.h"
+#include "flutter/fml/macros.h"
 #include "third_party/skia/include/core/SkCanvas.h"
 
 namespace shell {
@@ -38,7 +39,7 @@ class SurfaceFrame {
 
   bool PerformSubmit();
 
-  FXL_DISALLOW_COPY_AND_ASSIGN(SurfaceFrame);
+  FML_DISALLOW_COPY_AND_ASSIGN(SurfaceFrame);
 };
 
 class Surface {
@@ -51,10 +52,16 @@ class Surface {
 
   virtual std::unique_ptr<SurfaceFrame> AcquireFrame(const SkISize& size) = 0;
 
+  virtual SkMatrix GetRootTransformation() const = 0;
+
   virtual GrContext* GetContext() = 0;
 
+  virtual flow::ExternalViewEmbedder* GetExternalViewEmbedder();
+
+  virtual bool MakeRenderContextCurrent();
+
  private:
-  FXL_DISALLOW_COPY_AND_ASSIGN(Surface);
+  FML_DISALLOW_COPY_AND_ASSIGN(Surface);
 };
 
 }  // namespace shell

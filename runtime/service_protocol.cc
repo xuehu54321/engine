@@ -1,4 +1,4 @@
-// Copyright 2017 The Flutter Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -13,26 +13,26 @@
 #include <utility>
 #include <vector>
 
-#include "lib/fxl/synchronization/waitable_event.h"
+#include "flutter/fml/synchronization/waitable_event.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
 
 namespace blink {
 
-const fxl::StringView ServiceProtocol::kScreenshotExtensionName =
+const fml::StringView ServiceProtocol::kScreenshotExtensionName =
     "_flutter.screenshot";
-const fxl::StringView ServiceProtocol::kScreenshotSkpExtensionName =
+const fml::StringView ServiceProtocol::kScreenshotSkpExtensionName =
     "_flutter.screenshotSkp";
-const fxl::StringView ServiceProtocol::kRunInViewExtensionName =
+const fml::StringView ServiceProtocol::kRunInViewExtensionName =
     "_flutter.runInView";
-const fxl::StringView ServiceProtocol::kFlushUIThreadTasksExtensionName =
+const fml::StringView ServiceProtocol::kFlushUIThreadTasksExtensionName =
     "_flutter.flushUIThreadTasks";
-const fxl::StringView ServiceProtocol::kSetAssetBundlePathExtensionName =
+const fml::StringView ServiceProtocol::kSetAssetBundlePathExtensionName =
     "_flutter.setAssetBundlePath";
 
-static constexpr fxl::StringView kViewIdPrefx = "_flutterView/";
-static constexpr fxl::StringView kListViewsExtensionName = "_flutter.listViews";
+static constexpr fml::StringView kViewIdPrefx = "_flutterView/";
+static constexpr fml::StringView kListViewsExtensionName = "_flutter.listViews";
 
 ServiceProtocol::ServiceProtocol()
     : endpoints_({
@@ -88,20 +88,20 @@ bool ServiceProtocol::HandleMessage(const char* method,
                                     const char** json_object) {
   Handler::ServiceProtocolMap params;
   for (intptr_t i = 0; i < num_params; i++) {
-    params[fxl::StringView{param_keys[i]}] = fxl::StringView{param_values[i]};
+    params[fml::StringView{param_keys[i]}] = fml::StringView{param_values[i]};
   }
 
 #ifndef NDEBUG
-  FXL_DLOG(INFO) << "Service protcol method: " << method;
-  FXL_DLOG(INFO) << "Arguments: " << params.size();
+  FML_DLOG(INFO) << "Service protcol method: " << method;
+  FML_DLOG(INFO) << "Arguments: " << params.size();
   for (intptr_t i = 0; i < num_params; i++) {
-    FXL_DLOG(INFO) << "  " << i + 1 << ": " << param_keys[i] << " = "
+    FML_DLOG(INFO) << "  " << i + 1 << ": " << param_keys[i] << " = "
                    << param_values[i];
   }
 #endif  // NDEBUG
 
   rapidjson::Document document;
-  bool result = HandleMessage(fxl::StringView{method},                   //
+  bool result = HandleMessage(fml::StringView{method},                   //
                               params,                                    //
                               static_cast<ServiceProtocol*>(user_data),  //
                               document                                   //
@@ -112,14 +112,14 @@ bool ServiceProtocol::HandleMessage(const char* method,
   *json_object = strdup(buffer.GetString());
 
 #ifndef NDEBUG
-  FXL_DLOG(INFO) << "Response: " << *json_object;
-  FXL_DLOG(INFO) << "RPC Result: " << result;
+  FML_DLOG(INFO) << "Response: " << *json_object;
+  FML_DLOG(INFO) << "RPC Result: " << result;
 #endif  // NDEBUG
 
   return result;
 }
 
-bool ServiceProtocol::HandleMessage(fxl::StringView method,
+bool ServiceProtocol::HandleMessage(fml::StringView method,
                                     const Handler::ServiceProtocolMap& params,
                                     ServiceProtocol* service_protocol,
                                     rapidjson::Document& response) {
@@ -131,14 +131,14 @@ bool ServiceProtocol::HandleMessage(fxl::StringView method,
   return service_protocol->HandleMessage(method, params, response);
 }
 
-FXL_WARN_UNUSED_RESULT
+FML_WARN_UNUSED_RESULT
 static bool HandleMessageOnHandler(
     ServiceProtocol::Handler* handler,
-    fxl::StringView method,
+    fml::StringView method,
     const ServiceProtocol::Handler::ServiceProtocolMap& params,
     rapidjson::Document& document) {
-  FXL_DCHECK(handler);
-  fxl::AutoResetWaitableEvent latch;
+  FML_DCHECK(handler);
+  fml::AutoResetWaitableEvent latch;
   bool result = false;
   fml::TaskRunner::RunNowOrPostTask(
       handler->GetServiceProtocolHandlerTaskRunner(method),
@@ -157,7 +157,7 @@ static bool HandleMessageOnHandler(
   return result;
 }
 
-bool ServiceProtocol::HandleMessage(fxl::StringView method,
+bool ServiceProtocol::HandleMessage(fml::StringView method,
                                     const Handler::ServiceProtocolMap& params,
                                     rapidjson::Document& response) const {
   if (method == kListViewsExtensionName) {
@@ -175,9 +175,9 @@ bool ServiceProtocol::HandleMessage(fxl::StringView method,
   }
 
   // Find the handler by its "viewId" in the params.
-  auto view_id_param_found = params.find(fxl::StringView{"viewId"});
+  auto view_id_param_found = params.find(fml::StringView{"viewId"});
   if (view_id_param_found != params.end()) {
-    auto handler = reinterpret_cast<Handler*>(std::stoull(
+    auto* handler = reinterpret_cast<Handler*>(std::stoull(
         view_id_param_found->second.data() + kViewIdPrefx.size(), nullptr, 16));
     auto handler_found = handlers_.find(handler);
     if (handler_found != handlers_.end()) {
@@ -239,8 +239,8 @@ bool ServiceProtocol::HandleListViewsMethod(
   // Collect handler descriptions on their respective task runners.
   std::lock_guard<std::mutex> lock(handlers_mutex_);
   std::vector<std::pair<intptr_t, Handler::Description>> descriptions;
-  for (const auto& handler : handlers_) {
-    fxl::AutoResetWaitableEvent latch;
+  for (auto* const handler : handlers_) {
+    fml::AutoResetWaitableEvent latch;
     Handler::Description description;
 
     fml::TaskRunner::RunNowOrPostTask(

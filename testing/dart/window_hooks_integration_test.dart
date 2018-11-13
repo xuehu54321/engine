@@ -1,8 +1,12 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// HACK: pretend to be dart.ui in order to access its internals
+library dart.ui;
+
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -96,7 +100,7 @@ void main() {
         };
       });
 
-      _updateLocale('en', 'US');
+      _updateLocales(<String>['en', 'US', '', '']);
       expect(runZone, isNotNull);
       expect(runZone, same(innerZone));
       expect(locale, equals(const Locale('en', 'US')));

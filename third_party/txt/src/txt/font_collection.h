@@ -21,10 +21,10 @@
 #include <set>
 #include <string>
 #include <unordered_map>
-#include "lib/fxl/macros.h"
+#include "flutter/fml/macros.h"
 #include "minikin/FontCollection.h"
 #include "minikin/FontFamily.h"
-#include "third_party/googletest/googletest/include/gtest/gtest_prod.h" // nogncheck
+#include "third_party/googletest/googletest/include/gtest/gtest_prod.h"  // nogncheck
 #include "third_party/skia/include/core/SkFontMgr.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
 #include "txt/asset_font_manager.h"
@@ -42,6 +42,7 @@ class FontCollection : public std::enable_shared_from_this<FontCollection> {
 
   void SetDefaultFontManager(sk_sp<SkFontMgr> font_manager);
   void SetAssetFontManager(sk_sp<SkFontMgr> font_manager);
+  void SetDynamicFontManager(sk_sp<SkFontMgr> font_manager);
   void SetTestFontManager(sk_sp<SkFontMgr> font_manager);
 
   std::shared_ptr<minikin::FontCollection> GetMinikinFontCollectionForFamily(
@@ -73,6 +74,7 @@ class FontCollection : public std::enable_shared_from_this<FontCollection> {
 
   sk_sp<SkFontMgr> default_font_manager_;
   sk_sp<SkFontMgr> asset_font_manager_;
+  sk_sp<SkFontMgr> dynamic_font_manager_;
   sk_sp<SkFontMgr> test_font_manager_;
   std::unordered_map<FamilyKey,
                      std::shared_ptr<minikin::FontCollection>,
@@ -94,7 +96,7 @@ class FontCollection : public std::enable_shared_from_this<FontCollection> {
       const sk_sp<SkFontMgr>& manager,
       const std::string& family_name);
 
-  FXL_DISALLOW_COPY_AND_ASSIGN(FontCollection);
+  FML_DISALLOW_COPY_AND_ASSIGN(FontCollection);
 };
 
 }  // namespace txt

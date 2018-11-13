@@ -1,4 +1,4 @@
-// Copyright 2015 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -10,22 +10,13 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.util.Log;
+import io.flutter.util.PathUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
+import java.io.*;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-
-import io.flutter.util.PathUtils;
 
 /**
  * A class to intialize the native code.
@@ -110,6 +101,11 @@ class ResourceExtractor {
                     TIMESTAMP_PREFIX + packageInfo.versionCode + "-" + packageInfo.lastUpdateTime;
 
             final String[] existingTimestamps = getExistingTimestamps(dataDir);
+
+            if (existingTimestamps == null) {
+                return null;
+            }
+
             if (existingTimestamps.length != 1
                     || !expectedTimestamp.equals(existingTimestamps[0])) {
                 return expectedTimestamp;
@@ -182,7 +178,11 @@ class ResourceExtractor {
                 file.delete();
             }
         }
-        for (String timestamp : getExistingTimestamps(dataDir)) {
+        final String[] existingTimestamps = getExistingTimestamps(dataDir);
+        if (existingTimestamps == null) {
+            return;
+        }
+        for (String timestamp : existingTimestamps) {
             new File(dataDir, timestamp).delete();
         }
     }

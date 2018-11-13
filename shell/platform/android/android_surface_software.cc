@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,11 +7,11 @@
 #include <memory>
 #include <vector>
 
+#include "flutter/fml/logging.h"
 #include "flutter/fml/platform/android/jni_weak_ref.h"
 #include "flutter/fml/platform/android/scoped_java_ref.h"
 #include "flutter/fml/trace_event.h"
 #include "flutter/shell/platform/android/platform_view_android_jni.h"
-#include "lib/fxl/logging.h"
 
 namespace shell {
 
@@ -49,6 +49,10 @@ bool AndroidSurfaceSoftware::IsValid() const {
 
 bool AndroidSurfaceSoftware::ResourceContextMakeCurrent() {
   // Resource Context always not available on software backend.
+  return false;
+}
+
+bool AndroidSurfaceSoftware::ResourceContextClearCurrent() {
   return false;
 }
 
@@ -136,7 +140,7 @@ bool AndroidSurfaceSoftware::OnScreenSurfaceResize(const SkISize& size) const {
 }
 
 bool AndroidSurfaceSoftware::SetNativeWindow(
-    fxl::RefPtr<AndroidNativeWindow> window) {
+    fml::RefPtr<AndroidNativeWindow> window) {
   native_window_ = std::move(window);
   if (!(native_window_ && native_window_->IsValid()))
     return false;

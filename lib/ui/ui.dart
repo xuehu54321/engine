@@ -1,4 +1,4 @@
-// Copyright 2015 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -30,6 +30,7 @@ part 'isolate_name_server.dart';
 part 'lerp.dart';
 part 'natives.dart';
 part 'painting.dart';
+part 'plugins.dart';
 part 'pointer.dart';
 part 'semantics.dart';
 part 'text.dart';

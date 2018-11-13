@@ -170,20 +170,10 @@ class LayoutCache : private android::OnEntryRemoved<LayoutCacheKey, Layout*> {
   static const size_t kMaxEntries = 5000;
 };
 
-static unsigned int disabledDecomposeCompatibility(hb_unicode_funcs_t*,
-                                                   hb_codepoint_t,
-                                                   hb_codepoint_t*,
-                                                   void*) {
-  return 0;
-}
-
 class LayoutEngine {
  public:
   LayoutEngine() {
     unicodeFunctions = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
-    /* Disable the function used for compatibility decomposition */
-    hb_unicode_funcs_set_decompose_compatibility_func(
-        unicodeFunctions, disabledDecomposeCompatibility, NULL, NULL);
     hbBuffer = hb_buffer_create();
     hb_buffer_set_unicode_funcs(hbBuffer, unicodeFunctions);
   }
@@ -1132,7 +1122,9 @@ void Layout::appendLayout(Layout* src, size_t start, float extraAdvance) {
     int font_ix = findFace(src->mFaces[i], NULL);
     fontMap[i] = font_ix;
   }
-  int x0 = mAdvance;
+  // LibTxt: Changed x0 from int to float to prevent rounding that causes text
+  // jitter.
+  float x0 = mAdvance;
   for (size_t i = 0; i < src->mGlyphs.size(); i++) {
     LayoutGlyph& srcGlyph = src->mGlyphs[i];
     int font_ix = fontMap[srcGlyph.font_ix];

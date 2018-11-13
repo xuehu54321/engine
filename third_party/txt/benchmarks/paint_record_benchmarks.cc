@@ -16,9 +16,9 @@
 
 #include "third_party/benchmark/include/benchmark/benchmark_api.h"
 
+#include "flutter/fml/command_line.h"
+#include "flutter/fml/logging.h"
 #include "flutter/third_party/txt/tests/txt_test_utils.h"
-#include "lib/fxl/command_line.h"
-#include "lib/fxl/logging.h"
 #include "txt/paint_record.h"
 #include "txt/text_style.h"
 
@@ -39,7 +39,7 @@ static void BM_PaintRecordInit(benchmark::State& state) {
   auto text_blob = builder.make();
 
   while (state.KeepRunning()) {
-    PaintRecord PaintRecord(style, text_blob, SkPaint::FontMetrics(), 0, 0);
+    PaintRecord PaintRecord(style, text_blob, SkFontMetrics(), 0, 0);
   }
 }
 BENCHMARK(BM_PaintRecordInit);

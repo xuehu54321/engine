@@ -1,14 +1,10 @@
-// Copyright 2017 The Flutter Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "flutter/shell/platform/embedder/embedder_engine.h"
 
-#include "lib/fxl/functional/make_copyable.h"
-
-#ifdef ERROR
-#undef ERROR
-#endif
+#include "flutter/fml/make_copyable.h"
 
 namespace shell {
 
@@ -56,13 +52,13 @@ bool EmbedderEngine::Run(RunConfiguration run_configuration) {
   }
 
   shell_->GetTaskRunners().GetUITaskRunner()->PostTask(
-      fxl::MakeCopyable([engine = shell_->GetEngine(),          // engine
+      fml::MakeCopyable([engine = shell_->GetEngine(),          // engine
                          config = std::move(run_configuration)  // config
   ]() mutable {
         if (engine) {
           auto result = engine->Run(std::move(config));
-          if (!result) {
-            FXL_LOG(ERROR) << "Could not launch the engine with configuration.";
+          if (result == shell::Engine::RunStatus::Failure) {
+            FML_LOG(ERROR) << "Could not launch the engine with configuration.";
           }
         }
       }));
@@ -90,7 +86,7 @@ bool EmbedderEngine::DispatchPointerDataPacket(
     return false;
   }
 
-  shell_->GetTaskRunners().GetUITaskRunner()->PostTask(fxl::MakeCopyable(
+  shell_->GetTaskRunners().GetUITaskRunner()->PostTask(fml::MakeCopyable(
       [engine = shell_->GetEngine(), packet = std::move(packet)] {
         if (engine) {
           engine->DispatchPointerDataPacket(*packet);
@@ -101,7 +97,7 @@ bool EmbedderEngine::DispatchPointerDataPacket(
 }
 
 bool EmbedderEngine::SendPlatformMessage(
-    fxl::RefPtr<blink::PlatformMessage> message) {
+    fml::RefPtr<blink::PlatformMessage> message) {
   if (!IsValid() || !message) {
     return false;
   }

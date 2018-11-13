@@ -1,4 +1,4 @@
-// Copyright 2015 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,8 @@
 
 namespace flow {
 
-ClipRectLayer::ClipRectLayer() = default;
+ClipRectLayer::ClipRectLayer(Clip clip_behavior)
+    : clip_behavior_(clip_behavior) {}
 
 ClipRectLayer::~ClipRectLayer() = default;
 
@@ -22,13 +23,14 @@ void ClipRectLayer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
 #if defined(OS_FUCHSIA)
 
 void ClipRectLayer::UpdateScene(SceneUpdateContext& context) {
-  FXL_DCHECK(needs_system_composite());
+  FML_DCHECK(needs_system_composite());
 
-  scenic_lib::Rectangle shape(context.session(),   // session
-                              clip_rect_.width(),  //  width
-                              clip_rect_.height()  //  height
+  scenic::Rectangle shape(context.session(),   // session
+                          clip_rect_.width(),  //  width
+                          clip_rect_.height()  //  height
   );
 
+  // TODO(liyuqian): respect clip_behavior_
   SceneUpdateContext::Clip clip(context, shape, clip_rect_);
   UpdateSceneChildren(context);
 }
@@ -37,11 +39,18 @@ void ClipRectLayer::UpdateScene(SceneUpdateContext& context) {
 
 void ClipRectLayer::Paint(PaintContext& context) const {
   TRACE_EVENT0("flutter", "ClipRectLayer::Paint");
-  FXL_DCHECK(needs_painting());
+  FML_DCHECK(needs_painting());
 
-  SkAutoCanvasRestore save(&context.canvas, true);
-  context.canvas.clipRect(paint_bounds());
+  SkAutoCanvasRestore save(context.internal_nodes_canvas, true);
+  context.internal_nodes_canvas->clipRect(paint_bounds(),
+                                          clip_behavior_ != Clip::hardEdge);
+  if (clip_behavior_ == Clip::antiAliasWithSaveLayer) {
+    context.internal_nodes_canvas->saveLayer(paint_bounds(), nullptr);
+  }
   PaintChildren(context);
+  if (clip_behavior_ == Clip::antiAliasWithSaveLayer) {
+    context.internal_nodes_canvas->restore();
+  }
 }
 
 }  // namespace flow
